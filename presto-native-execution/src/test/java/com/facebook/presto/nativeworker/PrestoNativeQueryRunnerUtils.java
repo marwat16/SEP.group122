@@ -184,6 +184,42 @@ public class PrestoNativeQueryRunnerUtils
         return queryRunner;
     }
 
+    public static QueryRunner createJavaCteQueryRunner(String storageFormat)
+            throws Exception
+    {
+        return createJavaCteQueryRunner(Optional.of(getNativeQueryRunnerParameters().dataDirectory), storageFormat, true);
+    }
+
+    public static QueryRunner createJavaCteQueryRunner(String storageFormat, boolean addStorageFormatToPath)
+            throws Exception
+    {
+        return createJavaCteQueryRunner(Optional.of(getNativeQueryRunnerParameters().dataDirectory), storageFormat, addStorageFormatToPath);
+    }
+
+    public static QueryRunner createJavaCteQueryRunner(Optional<Path> dataDirectory, String storageFormat, boolean addStorageFormatToPath)
+            throws Exception
+    {
+        return createJavaCteQueryRunner(dataDirectory, "sql-standard", storageFormat, addStorageFormatToPath);
+    }
+
+    public static QueryRunner createJavaCteQueryRunner(Optional<Path> baseDataDirectory, String security, String storageFormat, boolean addStorageFormatToPath)
+            throws Exception
+    {
+        Optional<Path> dataDirectory = addStorageFormatToPath ? baseDataDirectory.map(path -> Paths.get(path.toString() + '/' + storageFormat)) : baseDataDirectory;
+        DistributedQueryRunner queryRunner =
+                HiveQueryRunner.createQueryRunner(
+                        ImmutableList.of(),
+                        ImmutableMap.<String, String>builder()
+                            .put("parse-decimal-literals-as-double", "true")
+                            .put("regex-library", "RE2J")
+                            .put("offset-clause-enabled", "true")
+                            .put("query.cte-partitioning-provider-catalog", "hive")
+                            .build(),
+                        ImmutableMap.of(),
+                        dataDirectory);
+        return queryRunner;
+    }
+
     public static QueryRunner createNativeIcebergQueryRunner(boolean useThrift)
             throws Exception
     {
@@ -269,6 +305,64 @@ public class PrestoNativeQueryRunnerUtils
                         .put("http-server.http.port", "8081")
                         .put("experimental.internal-communication.thrift-transport-enabled", String.valueOf(useThrift))
                         .putAll(getNativeWorkerSystemProperties())
+                        .build(),
+                ImmutableMap.of(),
+                "legacy",
+                hiveProperties,
+                workerCount,
+                Optional.of(Paths.get(addStorageFormatToPath ? dataDirectory + "/" + storageFormat : dataDirectory)),
+                getExternalWorkerLauncher("hive", prestoServerPath, cacheMaxSize, remoteFunctionServerUds));
+    }
+
+    public static QueryRunner createNativeCteQueryRunner(boolean useThrift, String storageFormat)
+            throws Exception
+    {
+        return createNativeCteQueryRunner(useThrift, storageFormat, Optional.empty());
+    }
+
+    public static QueryRunner createNativeCteQueryRunner(boolean useThrift, String storageFormat, Optional<String> remoteFunctionServerUds)
+            throws Exception
+    {
+        int cacheMaxSize = 0;
+        NativeQueryRunnerParameters nativeQueryRunnerParameters = getNativeQueryRunnerParameters();
+        return createNativeCteQueryRunner(
+                nativeQueryRunnerParameters.dataDirectory.toString(),
+                nativeQueryRunnerParameters.serverBinary.toString(),
+                nativeQueryRunnerParameters.workerCount,
+                cacheMaxSize,
+                useThrift,
+                remoteFunctionServerUds,
+                storageFormat,
+                true);
+    }
+    public static QueryRunner createNativeCteQueryRunner(
+            String dataDirectory,
+            String prestoServerPath,
+            Optional<Integer> workerCount,
+            int cacheMaxSize,
+            boolean useThrift,
+            Optional<String> remoteFunctionServerUds,
+            String storageFormat,
+            boolean addStorageFormatToPath)
+            throws Exception
+    {
+        // The property "hive.allow-drop-table" needs to be set to true because security is always "legacy" in NativeQueryRunner.
+        ImmutableMap<String, String> hiveProperties = ImmutableMap.<String, String>builder()
+                .putAll(getNativeWorkerHiveProperties(storageFormat))
+                .put("hive.allow-drop-table", "true")
+                .put("hive.enable-parquet-dereference-pushdown", "true")
+                .put("hive.temporary-table-storage-format", storageFormat)
+                .build();
+
+        // Make query runner with external workers for tests
+        return HiveQueryRunner.createQueryRunner(
+                ImmutableList.of(),
+                ImmutableList.of(),
+                ImmutableMap.<String, String>builder()
+                        .put("http-server.http.port", "8081")
+                        .put("experimental.internal-communication.thrift-transport-enabled", String.valueOf(useThrift))
+                        .putAll(getNativeWorkerSystemProperties())
+                        .put("query.cte-partitioning-provider-catalog", "hive")
                         .build(),
                 ImmutableMap.of(),
                 "legacy",

@@ -859,6 +859,8 @@ connector::hive::LocationHandle::TableType toTableType(
       return connector::hive::LocationHandle::TableType::kNew;
     case protocol::TableType::EXISTING:
       return connector::hive::LocationHandle::TableType::kExisting;
+    case protocol::TableType::TEMPORARY:
+      return connector::hive::LocationHandle::TableType::kTemporary;
     default:
       VELOX_UNSUPPORTED("Unsupported table type: {}.", toJsonString(tableType));
   }
