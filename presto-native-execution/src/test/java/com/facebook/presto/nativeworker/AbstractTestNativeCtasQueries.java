@@ -18,7 +18,6 @@ import com.facebook.presto.testing.QueryRunner;
 import com.facebook.presto.tests.AbstractTestQueryFramework;
 import org.testng.annotations.Test;
 
-import static com.facebook.presto.SystemSessionProperties.*;
 import static com.facebook.presto.nativeworker.NativeQueryRunnerUtils.createLineitem;
 import static com.facebook.presto.nativeworker.NativeQueryRunnerUtils.createNation;
 import static com.facebook.presto.nativeworker.NativeQueryRunnerUtils.createOrders;
@@ -108,7 +107,8 @@ public abstract class AbstractTestNativeCtasQueries
     }
 
     @Test
-    public void testCreateTableAsSelectBucketedTable() {
+    public void testCreateTableAsSelectBucketedTable()
+    {
         assertFalse(getQueryRunner().tableExists(getSession(), "lineitem_bucketed_ctas"));
         assertUpdate("" +
                 "CREATE TABLE lineitem_bucketed_ctas(orderkey, partkey, suppkey, linenumber, quantity, ds) " +
