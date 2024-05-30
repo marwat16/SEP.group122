@@ -4311,7 +4311,7 @@ public abstract class AbstractTestHiveClient
             // verify all temp files start with the unique prefix
             stagingPathRoot = getStagingPathRoot(insertTableHandle);
             Set<String> tempFiles = listAllDataFiles(context, stagingPathRoot);
-            assertTrue(!tempFiles.isEmpty());
+            assertFalse(tempFiles.isEmpty());
             for (String filePath : tempFiles) {
                 assertTrue(new Path(filePath).getName().startsWith(session.getQueryId()));
             }
@@ -4538,7 +4538,7 @@ public abstract class AbstractTestHiveClient
                     insertTableHandle.getLocationHandle().getTargetPath().toString(),
                     false);
             Set<String> tempFiles = listAllDataFiles(context, getStagingPathRoot(insertTableHandle));
-            assertTrue(!tempFiles.isEmpty());
+            assertFalse(tempFiles.isEmpty());
             for (String filePath : tempFiles) {
                 assertTrue(new Path(filePath).getName().startsWith(session.getQueryId()));
             }
@@ -4666,7 +4666,7 @@ public abstract class AbstractTestHiveClient
                     insertTableHandle.getLocationHandle().getTargetPath().toString(),
                     false);
             Set<String> tempFiles = listAllDataFiles(context, getStagingPathRoot(insertTableHandle));
-            assertTrue(!tempFiles.isEmpty());
+            assertFalse(tempFiles.isEmpty());
             for (String filePath : tempFiles) {
                 assertTrue(new Path(filePath).getName().startsWith(session.getQueryId()));
             }

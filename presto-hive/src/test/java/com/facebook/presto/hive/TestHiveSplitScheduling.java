@@ -27,6 +27,7 @@ import static com.facebook.presto.hive.HiveSessionProperties.DYNAMIC_SPLIT_SIZES
 import static io.airlift.tpch.TpchTable.ORDERS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 @Test(singleThreaded = true)
 public class TestHiveSplitScheduling
@@ -64,9 +65,6 @@ public class TestHiveSplitScheduling
                 // Less splits using dynamic number of splits.
                 assertEquals(eventListener.getTotalSplits(), 5);
             });
-        }
-        catch (Exception e) {
-            assertTrue(false, e.getMessage());
         }
         finally {
             getQueryRunner().execute("DROP TABLE IF EXISTS test_orders");
